@@ -1,0 +1,6 @@
+API Endpoints needed:
+- POST /api/users/register
+- POST /api/users/login
+- GET /api/products
+- POST /api/cart/add
+- POST /api/payment/process

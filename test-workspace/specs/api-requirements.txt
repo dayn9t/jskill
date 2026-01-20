@@ -1,0 +1,99 @@
+API Endpoints Requirements
+
+=== USER MANAGEMENT ===
+Authentication:
+- POST /api/users/register
+- POST /api/users/login
+- POST /api/users/logout
+- POST /api/users/reset-password
+- POST /api/auth/google (NEW - Google OAuth)
+- POST /api/auth/facebook (NEW - Facebook OAuth)
+
+User Profile & Addresses:
+- GET /api/users/profile
+- PUT /api/users/profile
+- GET /api/users/addresses (NEW - list shipping addresses)
+- POST /api/users/addresses (NEW - add shipping address)
+- PUT /api/users/addresses/:id (NEW - update shipping address)
+- DELETE /api/users/addresses/:id (NEW - delete shipping address)
+
+=== PRODUCT CATALOG ===
+Products:
+- GET /api/products
+- GET /api/products/:id
+- GET /api/products/search
+- GET /api/products/categories
+
+Reviews & Ratings (NEW):
+- GET /api/products/:id/reviews (NEW - get product reviews)
+- POST /api/products/:id/reviews (NEW - submit review)
+- PUT /api/reviews/:id (NEW - update review)
+- DELETE /api/reviews/:id (NEW - delete review)
+
+=== SHOPPING CART ===
+Cart Management:
+- GET /api/cart (NEW - get cart with persistence)
+- POST /api/cart/add
+- PUT /api/cart/items/:id (NEW - update cart item)
+- DELETE /api/cart/items/:id (NEW - remove cart item)
+- DELETE /api/cart (NEW - clear cart)
+
+Wishlist (NEW):
+- GET /api/wishlist (NEW - get wishlist)
+- POST /api/wishlist/add (NEW - add to wishlist)
+- DELETE /api/wishlist/items/:id (NEW - remove from wishlist)
+- POST /api/wishlist/move-to-cart/:id (NEW - move to cart)
+
+=== CHECKOUT & PAYMENT ===
+Payment Processing:
+- POST /api/payment/process
+- POST /api/payment/stripe (NEW - Stripe payment)
+- POST /api/payment/crypto (NEW - cryptocurrency payment)
+- GET /api/payment/crypto/address/:currency (NEW - get crypto wallet address)
+
+Coupons (NEW):
+- POST /api/checkout/validate-coupon (NEW - validate coupon code)
+- POST /api/checkout/apply-coupon (NEW - apply coupon to order)
+
+=== ORDER MANAGEMENT ===
+Orders:
+- POST /api/orders (NEW - create order)
+- GET /api/orders (NEW - get user orders)
+- GET /api/orders/:id (NEW - get order details)
+- GET /api/orders/:id/tracking (NEW - get tracking info)
+- PUT /api/orders/:id/cancel (NEW - cancel order)
+
+=== ADMIN PANEL ===
+Admin - Products (NEW):
+- POST /api/admin/products (NEW - create product)
+- PUT /api/admin/products/:id (NEW - update product)
+- DELETE /api/admin/products/:id (NEW - delete product)
+- POST /api/admin/products/:id/images (NEW - upload product images)
+
+Admin - Orders (NEW):
+- GET /api/admin/orders (NEW - get all orders)
+- PUT /api/admin/orders/:id/status (NEW - update order status)
+- POST /api/admin/orders/:id/refund (NEW - process refund)
+
+Admin - Users (NEW):
+- GET /api/admin/users (NEW - get all users)
+- PUT /api/admin/users/:id (NEW - update user)
+- DELETE /api/admin/users/:id (NEW - delete user)
+
+Admin - Coupons (NEW):
+- GET /api/admin/coupons (NEW - list coupons)
+- POST /api/admin/coupons (NEW - create coupon)
+- PUT /api/admin/coupons/:id (NEW - update coupon)
+- DELETE /api/admin/coupons/:id (NEW - delete coupon)
+
+Admin - Analytics (NEW):
+- GET /api/admin/analytics/sales (NEW - sales reports)
+- GET /api/admin/analytics/products (NEW - product analytics)
+- GET /api/admin/analytics/customers (NEW - customer analytics)
+
+=== NOTIFICATIONS ===
+Email Notifications (NEW):
+- Triggered automatically on order events
+- POST /api/notifications/order-confirmation (NEW - internal)
+- POST /api/notifications/shipping-update (NEW - internal)
+- POST /api/notifications/delivery-confirmation (NEW - internal)
