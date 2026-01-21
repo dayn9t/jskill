@@ -57,13 +57,31 @@ This skill automatically applies personal preferences to all Claude Code convers
 - Read file first to understand structure
 
 **For Planning Documents**:
-- ❌ Write 1000+ line implementation plans in one file
-- ✅ Split into multiple smaller files:
-  - `phase-1-xxx.md` (< 500 lines)
-  - `phase-2-xxx.md` (< 500 lines)
-  - `overview.md` (summary with links)
-- ✅ Use EnterPlanMode tool for complex multi-phase plans
-- ✅ Create outline first, then ask user which phase to detail
+
+**识别"详细计划"场景**（容易触发输出 token 限制）：
+- 包含 5+ 个大型代码块（每个 >20 行）
+- 包含完整的 Schema 定义、API 设计、多个任务详情
+- 用户明确要求"详细的"、"完整的"、"包含代码示例"
+
+**应对策略 - 分文件生成**：
+- ❌ 一次性生成包含所有细节的单个文件
+- ✅ 拆分成多个文件（混合拆分策略）：
+  ```
+  docs/plans/YYYY-MM-DD-topic-overview.md       # 总览（目标、架构概要、文件导航）
+  docs/plans/YYYY-MM-DD-topic-design.md         # 技术设计（Schema、API、数据流）
+  docs/plans/YYYY-MM-DD-topic-tasks/            # 任务目录
+    ├── task1-xxx.md                            # 任务1详情（< 300 行）
+    ├── task2-xxx.md                            # 任务2详情（< 300 行）
+    └── ...
+  ```
+- ✅ 每个文件控制在 300 行以内
+- ✅ overview.md 作为入口，包含到其他文件的链接
+
+**失败后的应对**：
+- 如果遇到 "Error writing file" 且重试多次失败
+- 识别为 token 限制问题
+- 立即切换到分文件策略
+- 告知用户："检测到内容较多，已切换为分文件生成"
 
 **For Command Output**:
 - ❌ Show full output when it exceeds token limits
@@ -93,8 +111,8 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 | 20+ line code blocks | 精简到核心部分 |
 | Write tool on large files | Edit tool 做精确修改 |
 | Full command output | 用 head/tail 限制输出 |
-| 1000+ line plan in one file | 拆分成多个小文件 |
-| Write entire plan at once | 先写概览，询问详细哪部分 |
+| Detailed plan in one file | 分文件生成（overview + design + tasks/） |
+| Retry same approach on error | 识别 token 限制，切换策略 |
 
 ## Examples
 
@@ -181,18 +199,25 @@ Error: CLAUDE_CODE_MAX_OUTPUT_TOKENS exceeded
 ❌ **Wrong**:
 ```
 现在让我创建 Phase 2 的详细实施计划...
-[Tries to write 1500-line plan in one file]
+[Tries to write 1500-line plan with 10+ code blocks in one file]
 Error writing file
+Error writing file
+Error writing file
+[Keeps retrying the same approach]
 ```
 
 ✅ **Correct**:
 ```
-计划文档较大，我将分成多个文件：
-- docs/plans/overview.md (总览)
-- docs/plans/phase-1-metadata-layer.md (阶段1详情)
-- docs/plans/phase-2-query-engine.md (阶段2详情)
+检测到这是详细实施计划（包含 Schema、API 设计、8 个任务），将分文件生成：
 
-你想先看哪个阶段的详细计划？
+已创建：
+- docs/plans/2026-01-21-phase2-overview.md (总览)
+- docs/plans/2026-01-21-phase2-design.md (技术设计)
+- docs/plans/2026-01-21-phase2-tasks/task1-init.md
+- docs/plans/2026-01-21-phase2-tasks/task2-crud.md
+...
+
+从 overview.md 开始查看。
 ```
 
 ## Integration
