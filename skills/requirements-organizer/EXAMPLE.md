@@ -153,9 +153,21 @@ Requirements documentation for the task management application, organized by fun
 
 ## How to Invoke
 
-In Claude Code:
+**This skill must be explicitly invoked - it will not trigger automatically.**
+
+In Claude Code, explicitly request the skill:
+```
+User: Use requirements-organizer to organize our requirements
+```
+
+Or:
+```
+User: /requirements-organizer
+```
+
+Or:
 ```
 User: I have some requirement changes. Can you organize them using the requirements-organizer skill?
 ```
 
-Or simply describe your requirements and the skill will be invoked automatically when appropriate.
+**Important**: The skill will NOT auto-trigger when you simply mention requirements or discuss changes. You must explicitly invoke it by name.

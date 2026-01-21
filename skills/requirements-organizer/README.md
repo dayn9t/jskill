@@ -6,6 +6,8 @@ A Claude Code skill for organizing and structuring software requirements documen
 
 This skill helps consolidate scattered requirement changes into structured, modular documentation. It combines existing requirements with new changes from conversation, organizes by functional modules, and automatically splits large files to prevent context overload.
 
+**This is a MANUAL tool** - it must be explicitly invoked and will not trigger automatically.
+
 ## When to Use
 
 Use this skill when:
@@ -38,17 +40,27 @@ Use this skill when:
 
 ## Usage
 
-Simply invoke the skill when you need to organize requirements:
+**This skill must be explicitly invoked - it will not trigger automatically.**
+
+To use the skill, explicitly request it:
 
 ```
-User: We need to add social login and payment processing to our app
-Assistant: [Uses requirements-organizer skill to consolidate and structure requirements]
+User: Use requirements-organizer to organize our requirements
 ```
 
-Or explicitly:
+Or:
+
 ```
-User: Use the requirements-organizer skill to organize our requirements
+User: /requirements-organizer
 ```
+
+Or:
+
+```
+User: Organize our requirements with the requirements-organizer skill
+```
+
+The skill will NOT auto-trigger when you simply discuss requirements. You must explicitly invoke it.
 
 ## What It Does
 
@@ -115,6 +127,13 @@ This skill was developed using TDD (Test-Driven Development) following the super
 
 ## Version History
 
+- **1.1.0** (2026-01-21) - Trigger mechanism and completeness improvements
+  - Changed to manual-only triggering (no auto-invoke)
+  - Strengthened TodoWrite enforcement
+  - Added triple verification (module count, file count, todo count)
+  - Enhanced Phase 4 validation with step-by-step checks
+  - Added completion metrics to user reports
+  - Updated red flags table with completeness checks
 - **1.0.0** (2026-01-20) - Initial release
   - Modular structure creation
   - Standard template enforcement

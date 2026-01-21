@@ -1,7 +1,7 @@
 ---
 name: requirements-organizer
-description: Use when requirements change and need to be consolidated, restructured, and documented in a clear format with automatic file splitting to prevent context overload
-version: 1.0.0
+description: Manual tool for consolidating scattered requirements into structured, modular documentation with automatic file splitting - invoke explicitly when organizing requirements
+version: 1.1.0
 ---
 
 # Requirements Organizer
@@ -11,6 +11,19 @@ version: 1.0.0
 Consolidates scattered requirement changes into structured, modular documentation. Combines existing requirements with new changes from conversation, organizes by functional modules, and automatically splits large files to prevent context overload.
 
 ## When to Use
+
+**This is a MANUAL tool. Only use when explicitly requested by the user.**
+
+Invoke this skill when the user says:
+- "Use requirements-organizer"
+- "/requirements-organizer"
+- "Organize our requirements"
+- Similar explicit requests
+
+Do NOT auto-invoke when:
+- User mentions requirement changes in passing
+- Requirements are discussed but not ready to organize
+- User hasn't explicitly asked for organization
 
 Use this skill when:
 - Requirements have changed and need to be updated in documentation
@@ -32,14 +45,24 @@ Violating this rule creates context overload and write failures. No exceptions.
 
 ## The Process
 
-**MANDATORY: Use TodoWrite to create a checklist from Phase 1-4 before starting.**
+**MANDATORY FIRST STEP: Use TodoWrite BEFORE doing anything else.**
 
-**Include one todo item for EACH module you identify:**
-- [ ] Create [module-name] module
-- [ ] Create [module-name] module
+You MUST create a checklist with:
+1. Phase markers (Discovery, Analysis, Documentation, Validation)
+2. ONE item for EACH module (add after Phase 2 when modules are identified)
+
+Example structure:
+- [ ] Phase 1: Discovery - locate existing requirements
+- [ ] Phase 2: Analysis - identify modules
+- [ ] Create [module-1] module
+- [ ] Create [module-2] module
+- [ ] Create [module-3] module
 ... (one per module)
+- [ ] Phase 3: Create README.md
+- [ ] Phase 4: Validation - verify completeness
 
-Mark each as completed as you write it. This ensures you don't skip modules.
+**CRITICAL**: Mark each module as completed IMMEDIATELY after writing it.
+**CRITICAL**: You are NOT done until ALL module items are marked completed.
 
 ### Phase 1: Discovery
 
@@ -65,6 +88,11 @@ Mark each as completed as you write it. This ensures you don't skip modules.
    - Group requirements by functional area
    - Maintain clear boundaries between modules
    - Identify cross-module dependencies
+
+**After identifying modules, COUNT them and report:**
+- "Identified X functional modules: [list names]"
+- Add X todo items to your TodoWrite checklist (one per module)
+- This count will be verified in Phase 4
 
 ### Phase 3: Documentation
 
@@ -119,16 +147,32 @@ Mark each as completed as you write it. This ensures you don't skip modules.
 
 ### Phase 4: Validation
 
-9. **Verify completeness**
-   - **CRITICAL: Check that EVERY identified module has a file**
-   - Count modules identified in Phase 2
-   - Count files created in Phase 3
-   - **If counts don't match, you're NOT done - create missing modules**
+9. **Verify completeness (MANDATORY)**
+
+   **Step 1: Count verification**
+   - Count modules identified in Phase 2: X modules
+   - Count module files created in Phase 3: Y files
+   - Count completed module todos in TodoWrite: Z items
+   - **If X ≠ Y ≠ Z, you are NOT done**
+
+   **Step 2: List missing modules**
+   - If any counts don't match, list missing modules by name
+   - Create each missing module immediately
+   - Mark each as completed in TodoWrite
+
+   **Step 3: Content verification**
    - Verify all conversation changes are captured
    - All existing requirements are preserved or explicitly updated
    - No contradictions remain
    - All modules are properly linked
-   - **Check your TodoWrite checklist - all module items must be completed**
+   - README.md exists and lists all modules
+
+   **Step 4: TodoWrite verification**
+   - Check your TodoWrite checklist
+   - ALL module items must show "completed" status
+   - If any are not completed, you are NOT done
+
+   **You can only proceed to step 10 when all counts match and all todos are completed.**
 
 10. **Handle old files**
     - If old monolithic requirement files exist (e.g., docs/requirements.md)
@@ -136,9 +180,16 @@ Mark each as completed as you write it. This ensures you don't skip modules.
     - Report to user which old files exist and suggest they can be archived
 
 11. **Report to user**
+
+    **MANDATORY: Include these metrics in your report:**
+    - Modules identified: X
+    - Modules created: X (must match)
+    - Files written: Y
+    - Completion rate: 100% (anything less means you're not done)
+
+    Then include:
     - Summarize what was organized
     - List all created/updated files (count them)
-    - Report: "Created X modules out of X identified" (must be 100%)
     - Highlight any ambiguities or decisions made
     - Suggest archiving old files if they exist
 
@@ -252,6 +303,10 @@ These thoughts mean STOP - you're doing it wrong:
 | "I don't need to read existing docs" | Always merge with existing requirements |
 | "This module is too small to document" | Even small modules need structure for consistency |
 | "I'll organize this my own way" | Follow the template for consistency |
+| "I've created the main modules" | ALL modules must be created, not just main ones |
+| "I'll create the rest later" | Complete ALL modules now, not later |
+| "The user can create remaining modules" | Your job is to create ALL modules |
+| "I've done enough for now" | Check TodoWrite - all items must be completed |
 
 **All of these mean: Follow the process. Create modular structure. Use the template.**
 
