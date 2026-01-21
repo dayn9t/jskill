@@ -56,6 +56,15 @@ This skill automatically applies personal preferences to all Claude Code convers
 - Split large writes into multiple smaller edits
 - Read file first to understand structure
 
+**For Planning Documents**:
+- ❌ Write 1000+ line implementation plans in one file
+- ✅ Split into multiple smaller files:
+  - `phase-1-xxx.md` (< 500 lines)
+  - `phase-2-xxx.md` (< 500 lines)
+  - `overview.md` (summary with links)
+- ✅ Use EnterPlanMode tool for complex multi-phase plans
+- ✅ Create outline first, then ask user which phase to detail
+
 **For Command Output**:
 - ❌ Show full output when it exceeds token limits
 - ✅ Use `head`/`tail` to limit output lines
@@ -84,6 +93,8 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 | 20+ line code blocks | 精简到核心部分 |
 | Write tool on large files | Edit tool 做精确修改 |
 | Full command output | 用 head/tail 限制输出 |
+| 1000+ line plan in one file | 拆分成多个小文件 |
+| Write entire plan at once | 先写概览，询问详细哪部分 |
 
 ## Examples
 
@@ -163,6 +174,25 @@ Error: CLAUDE_CODE_MAX_OUTPUT_TOKENS exceeded
 ```
 [Runs: npm install | tail -n 20]
 依赖安装完成，无错误
+```
+
+### Example 6: Large Planning Document
+
+❌ **Wrong**:
+```
+现在让我创建 Phase 2 的详细实施计划...
+[Tries to write 1500-line plan in one file]
+Error writing file
+```
+
+✅ **Correct**:
+```
+计划文档较大，我将分成多个文件：
+- docs/plans/overview.md (总览)
+- docs/plans/phase-1-metadata-layer.md (阶段1详情)
+- docs/plans/phase-2-query-engine.md (阶段2详情)
+
+你想先看哪个阶段的详细计划？
 ```
 
 ## Integration
