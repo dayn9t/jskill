@@ -1,4 +1,4 @@
-# Personal Preferences Skill
+# JPreferences Skill
 
 个人偏好 skill，自动应用到所有 Claude Code 对话。
 
@@ -23,13 +23,13 @@
 
 ```bash
 # 复制到 Claude Code skills 目录
-cp -r skills/personal-preferences ~/.claude/skills/
+cp -r skills/jpreferences ~/.claude/skills/
 
 # 配置自动加载
 # 编辑 ~/.claude/settings.json，添加：
 {
   "hooks": {
-    "SessionStart": "echo '/personal-preferences'"
+    "SessionStart": "echo '/jpreferences'"
   }
 }
 ```
@@ -37,7 +37,7 @@ cp -r skills/personal-preferences ~/.claude/skills/
 ### 方法 2: 符号链接
 
 ```bash
-ln -s $(pwd)/skills/personal-preferences ~/.claude/skills/personal-preferences
+ln -s $(pwd)/skills/jpreferences ~/.claude/skills/jpreferences
 ```
 
 ## 使用
@@ -86,7 +86,7 @@ Claude: [follows user instruction]
 ## 文件结构
 
 ```
-skills/personal-preferences/
+skills/jpreferences/
 ├── SKILL.md          # 核心 skill 文件
 ├── README.md         # 本文件
 └── EXAMPLE.md        # 使用示例

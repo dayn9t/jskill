@@ -1,5 +1,5 @@
 ---
-name: personal-preferences
+name: jpreferences
 description: Apply personal preferences to all conversations - Chinese responses, modern tech stack, concise communication
 ---
 
