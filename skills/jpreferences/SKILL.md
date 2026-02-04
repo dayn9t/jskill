@@ -56,38 +56,65 @@ This skill automatically applies personal preferences to all Claude Code convers
 - Split large writes into multiple smaller edits
 - Read file first to understand structure
 
-**For Planning Documents**:
-
-**识别"详细计划"场景**（容易触发输出 token 限制）：
-- 包含 5+ 个大型代码块（每个 >20 行）
-- 包含完整的 Schema 定义、API 设计、多个任务详情
-- 用户明确要求"详细的"、"完整的"、"包含代码示例"
-
-**应对策略 - 分文件生成**：
-- ❌ 一次性生成包含所有细节的单个文件
-- ✅ 拆分成多个文件（混合拆分策略）：
-  ```
-  docs/plans/YYYY-MM-DD-topic-overview.md       # 总览（目标、架构概要、文件导航）
-  docs/plans/YYYY-MM-DD-topic-design.md         # 技术设计（Schema、API、数据流）
-  docs/plans/YYYY-MM-DD-topic-tasks/            # 任务目录
-    ├── task1-xxx.md                            # 任务1详情（< 300 行）
-    ├── task2-xxx.md                            # 任务2详情（< 300 行）
-    └── ...
-  ```
-- ✅ 每个文件控制在 300 行以内
-- ✅ overview.md 作为入口，包含到其他文件的链接
-
-**失败后的应对**：
-- 如果遇到 "Error writing file" 且重试多次失败
-- 识别为 token 限制问题
-- 立即切换到分文件策略
-- 告知用户："检测到内容较多，已切换为分文件生成"
-
 **For Command Output**:
 - ❌ Show full output when it exceeds token limits
 - ✅ Use `head`/`tail` to limit output lines
 - Add `| head -n 50` for long outputs
 - Summarize results instead of showing everything
+
+## 大文档生成协议
+
+**强制要求**：生成任何文档前必须执行此协议。此协议优先级高于其他 skill（包括 writing-plans）的单文件要求。
+
+### 决策流程
+
+```
+生成文档前 → 估算内容大小
+    │
+    ├─ < 200 行 ────→ 单文件生成
+    ├─ 200-300 行 ──→ 尝试单文件，失败则分文件
+    └─ > 300 行 ────→ 直接分文件
+```
+
+### 估算方法
+
+取以下较大值：
+- 任务数 × 50 行
+- 代码块数 × 25 行
+
+| 任务数 | 估算行数 | 策略 |
+|--------|----------|------|
+| 3 | ~150 | 单文件 |
+| 5 | ~250 | 尝试单文件 |
+| 6+ | >300 | 直接分文件 |
+
+### 分文件结构
+
+```
+docs/plans/YYYY-MM-DD-<topic>-overview.md
+docs/plans/YYYY-MM-DD-<topic>-tasks/
+  ├── 01-<task-name>.md    (< 250 行)
+  ├── 02-<task-name>.md    (< 250 行)
+  └── ...
+```
+
+**overview.md 内容**：目标、架构、技术栈、任务列表（带链接）
+
+**task 文件内容**：完整单个任务 + 返回 overview 链接
+
+### 失败回退
+
+遇到 "Error writing file" 时：
+1. 不要重试相同方法
+2. 立即切换分文件策略
+3. 告知用户："内容较多，已切换分文件生成"
+
+### 适用范围
+
+- ✅ 使用 writing-plans 等 skill 生成计划
+- ✅ 直接创建设计文档、需求文档
+- ❌ 代码文件（用 Edit 工具修改）
+- ❌ 已存在大文件的小修改
 
 ## Enforcement
 
@@ -99,6 +126,7 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 2. **Tech**: Did I choose the most modern option?
 3. **Brevity**: Can I say this in fewer words?
 4. **File ops**: Am I using Edit for large files? Limiting command output?
+5. **Doc protocol**: 生成文档前是否执行了大文档生成协议？
 
 ### Common Violations
 
@@ -111,7 +139,7 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 | 20+ line code blocks | 精简到核心部分 |
 | Write tool on large files | Edit tool 做精确修改 |
 | Full command output | 用 head/tail 限制输出 |
-| Detailed plan in one file | 分文件生成（overview + design + tasks/） |
+| 6+ 任务的计划写单文件 | 执行大文档生成协议，直接分文件 |
 | Retry same approach on error | 识别 token 限制，切换策略 |
 
 ## Examples
@@ -198,23 +226,21 @@ Error: CLAUDE_CODE_MAX_OUTPUT_TOKENS exceeded
 
 ❌ **Wrong**:
 ```
-现在让我创建 Phase 2 的详细实施计划...
-[Tries to write 1500-line plan with 10+ code blocks in one file]
+[Uses writing-plans skill with 8 tasks]
+[Tries to write single file]
 Error writing file
 Error writing file
-Error writing file
-[Keeps retrying the same approach]
+[Keeps retrying]
 ```
 
 ✅ **Correct**:
 ```
-检测到这是详细实施计划（包含 Schema、API 设计、8 个任务），将分文件生成：
+估算：8 任务 × 50 = 400 行 > 300，执行分文件策略
 
 已创建：
-- docs/plans/2026-01-21-phase2-overview.md (总览)
-- docs/plans/2026-01-21-phase2-design.md (技术设计)
-- docs/plans/2026-01-21-phase2-tasks/task1-init.md
-- docs/plans/2026-01-21-phase2-tasks/task2-crud.md
+- docs/plans/2026-02-04-feature-overview.md
+- docs/plans/2026-02-04-feature-tasks/01-setup.md
+- docs/plans/2026-02-04-feature-tasks/02-api.md
 ...
 
 从 overview.md 开始查看。
