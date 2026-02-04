@@ -116,6 +116,63 @@ docs/plans/YYYY-MM-DD-<topic>-tasks/
 - ❌ 代码文件（用 Edit 工具修改）
 - ❌ 已存在大文件的小修改
 
+## 输出 Token 限制协议
+
+**问题**：Claude 响应超过 64000 token 限制时会报错：
+```
+API Error: Claude's response exceeded the 64000 output token maximum
+```
+
+### 预防策略
+
+**生成代码前估算**：
+| 内容类型 | 估算 tokens | 策略 |
+|----------|-------------|------|
+| < 500 行代码 | ~10K | 正常生成 |
+| 500-1000 行 | ~20K | 分批生成 |
+| > 1000 行 | >40K | 必须分批 |
+
+**分批生成方法**：
+1. 先生成核心文件（models、ports）
+2. 等待用户确认后继续
+3. 再生成实现文件（services、adapters）
+4. 最后生成测试文件
+
+### 响应时自检
+
+每次响应前检查：
+- 是否要生成多个完整文件？→ 分批
+- 是否要展示大量代码？→ 只展示核心部分
+- 是否要输出长命令结果？→ 用 `| head -50` 限制
+
+### 遇到错误时
+
+如果收到 `exceeded the 64000 output token maximum` 错误：
+1. **不要重试相同内容**
+2. 告知用户："响应过长，分批处理"
+3. 只生成第一部分，询问是否继续
+
+### 示例
+
+❌ **错误**：一次性生成 10 个文件
+```
+[生成 models.py]
+[生成 ports.py]
+[生成 services.py]
+[生成 adapters.py]
+[生成 5 个测试文件]
+→ API Error: exceeded 64000 token maximum
+```
+
+✅ **正确**：分批生成
+```
+第一批：生成核心模型
+- models.py ✅
+- ports.py ✅
+
+继续生成实现层？(y/n)
+```
+
 ## Enforcement
 
 This is a **RIGID** skill. Follow these rules automatically without asking for confirmation.
@@ -127,6 +184,7 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 3. **Brevity**: Can I say this in fewer words?
 4. **File ops**: Am I using Edit for large files? Limiting command output?
 5. **Doc protocol**: 生成文档前是否执行了大文档生成协议？
+6. **Output tokens**: 响应是否可能超过 64K tokens？需要分批吗？
 
 ### Common Violations
 
@@ -141,6 +199,8 @@ This is a **RIGID** skill. Follow these rules automatically without asking for c
 | Full command output | 用 head/tail 限制输出 |
 | 6+ 任务的计划写单文件 | 执行大文档生成协议，直接分文件 |
 | Retry same approach on error | 识别 token 限制，切换策略 |
+| 一次生成 10+ 个文件 | 分批生成，每批 3-4 个文件 |
+| 响应超 64K tokens | 分批处理，询问是否继续 |
 
 ## Examples
 
