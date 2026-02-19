@@ -130,16 +130,18 @@ def print_stats_table(stats: Dict, title: str = "API Usage Statistics"):
     total_count = 0
     total_input = 0
     total_output = 0
-    total_cache = 0
+    total_cache_read = 0
+    total_cache_creation = 0
 
     if HAS_RICH:
         console = Console()
         table = Table(title=title, show_header=True, header_style="bold cyan")
-        table.add_column("Model", style="green", width=30)
-        table.add_column("Requests", justify="right", style="yellow")
-        table.add_column("Input", justify="right", style="blue")
-        table.add_column("Output", justify="right", style="magenta")
-        table.add_column("Cache Read", justify="right", style="cyan")
+        table.add_column("Model", style="green", width=28)
+        table.add_column("Reqs", justify="right", style="yellow", width=6)
+        table.add_column("Input", justify="right", style="blue", width=9)
+        table.add_column("Output", justify="right", style="magenta", width=9)
+        table.add_column("Cache R", justify="right", style="cyan", width=9)
+        table.add_column("Cache C", justify="right", style="dim cyan", width=9)
 
         for model, data in sorted_models:
             table.add_row(
@@ -147,12 +149,14 @@ def print_stats_table(stats: Dict, title: str = "API Usage Statistics"):
                 format_number(data['count']),
                 format_tokens(data['input_tokens']),
                 format_tokens(data['output_tokens']),
-                format_tokens(data['cache_read_tokens'])
+                format_tokens(data['cache_read_tokens']),
+                format_tokens(data['cache_creation_tokens'])
             )
             total_count += data['count']
             total_input += data['input_tokens']
             total_output += data['output_tokens']
-            total_cache += data['cache_read_tokens']
+            total_cache_read += data['cache_read_tokens']
+            total_cache_creation += data['cache_creation_tokens']
 
         # 添加总计行
         table.add_row(
@@ -160,7 +164,8 @@ def print_stats_table(stats: Dict, title: str = "API Usage Statistics"):
             f"[bold]{format_number(total_count)}[/bold]",
             f"[bold]{format_tokens(total_input)}[/bold]",
             f"[bold]{format_tokens(total_output)}[/bold]",
-            f"[bold]{format_tokens(total_cache)}[/bold]"
+            f"[bold]{format_tokens(total_cache_read)}[/bold]",
+            f"[bold]{format_tokens(total_cache_creation)}[/bold]"
         )
 
         console.print(table)
