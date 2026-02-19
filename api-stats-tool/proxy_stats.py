@@ -253,22 +253,47 @@ def print_stats(stats: dict, title: str = "Proxy Statistics"):
 
 async def main():
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description='API Stats TCP Proxy')
     parser.add_argument('--start', action='store_true', help='Start proxy server')
     parser.add_argument('--stats', action='store_true', help='Show statistics')
     parser.add_argument('--port', type=int, default=8080, help='Proxy port')
     parser.add_argument('--hours', type=int, default=24, help='Stats: last N hours')
+    parser.add_argument('--url-only', action='store_true', help='Show URL stats only')
 
     args = parser.parse_args()
 
     db_path = Path.home() / '.claude' / 'proxy_stats.db'
 
     if args.stats:
+        # 显示 URL 统计
         db = StatsDatabase(db_path)
         stats = db.get_stats(since_hours=args.hours)
         title = f"Proxy Statistics (Last {args.hours} hours)"
         print_stats(stats, title=title)
+
+        # 合并显示模型统计
+        if not args.url_only:
+            try:
+                # 导入 stats 模块
+                script_dir = Path(__file__).parent
+                if str(script_dir) not in sys.path:
+                    sys.path.insert(0, str(script_dir))
+
+                from stats import APIStatsAnalyzer, print_stats_table, format_number, format_tokens
+
+                # 分析本地日志
+                analyzer = APIStatsAnalyzer()
+                model_stats = analyzer.analyze(days=args.hours // 24 if args.hours >= 24 else 1)
+
+                if model_stats:
+                    print()  # 空行分隔
+                    model_title = f"Model Statistics (Last {args.hours // 24 if args.hours >= 24 else 1} days)"
+                    print_stats_table(model_stats, title=model_title)
+            except Exception as e:
+                pass  # 静默失败，不影响 URL 统计
+
     elif args.start:
         proxy = TCPProxy(listen_port=args.port, db_path=db_path)
         try:
