@@ -14,6 +14,14 @@ from dataclasses import dataclass
 from typing import Optional
 import logging
 
+# 尝试使用 rich 库
+try:
+    from rich.console import Console
+    from rich.table import Table
+    HAS_RICH = True
+except ImportError:
+    HAS_RICH = False
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -210,25 +218,37 @@ class TCPProxy:
         self.running = False
 
 
-def print_stats(stats: dict):
+def print_stats(stats: dict, title: str = "Proxy Statistics"):
     """打印统计结果"""
     if not stats:
         print("No data yet.")
         return
 
-    print("=" * 70)
-    print(f"{'Target Host':<50} {'Requests':>10}")
-    print("=" * 70)
+    sorted_hosts = sorted(stats.items(), key=lambda x: x[1]['count'], reverse=True)
+    total = sum(d['count'] for _, d in sorted_hosts)
 
-    total = 0
-    for host, data in sorted(stats.items(), key=lambda x: x[1]['count'], reverse=True):
-        count = data['count']
-        print(f"{host:<50} {count:>10,}")
-        total += count
+    if HAS_RICH:
+        console = Console()
+        table = Table(title=title, show_header=True, header_style="bold cyan")
+        table.add_column("Target Host", style="green", width=50)
+        table.add_column("Requests", justify="right", style="yellow", width=12)
 
-    print("=" * 70)
-    print(f"{'TOTAL':<50} {total:>10,}")
-    print("=" * 70)
+        for host, data in sorted_hosts:
+            table.add_row(host, f"{data['count']:,}")
+
+        table.add_row("[bold]TOTAL[/bold]", f"[bold]{total:,}[/bold]")
+        console.print(table)
+    else:
+        print("=" * 65)
+        print(f"{'Target Host':<50} {'Requests':>12}")
+        print("=" * 65)
+
+        for host, data in sorted_hosts:
+            print(f"{host:<50} {data['count']:>12,}")
+
+        print("=" * 65)
+        print(f"{'TOTAL':<50} {total:>12,}")
+        print("=" * 65)
 
 
 async def main():
@@ -247,8 +267,8 @@ async def main():
     if args.stats:
         db = StatsDatabase(db_path)
         stats = db.get_stats(since_hours=args.hours)
-        print(f"\nAPI Statistics (Last {args.hours} hours)\n")
-        print_stats(stats)
+        title = f"Proxy Statistics (Last {args.hours} hours)"
+        print_stats(stats, title=title)
     elif args.start:
         proxy = TCPProxy(listen_port=args.port, db_path=db_path)
         try:

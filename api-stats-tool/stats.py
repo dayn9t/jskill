@@ -12,6 +12,15 @@ from collections import defaultdict
 from typing import Dict, List, Optional
 import argparse
 
+# 尝试使用 rich 库，如果不可用则使用简单表格
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich import print as rprint
+    HAS_RICH = True
+except ImportError:
+    HAS_RICH = False
+
 
 class APIStatsAnalyzer:
     def __init__(self, claude_dir: Path = None):
@@ -100,16 +109,20 @@ def format_number(n: int) -> str:
     return f"{n:,}"
 
 
-def print_stats_table(stats: Dict):
+def format_tokens(n: int) -> str:
+    """格式化 token 数量为易读格式"""
+    if n >= 1_000_000:
+        return f"{n/1_000_000:.1f}M"
+    elif n >= 1_000:
+        return f"{n/1_000:.1f}K"
+    return str(n)
+
+
+def print_stats_table(stats: Dict, title: str = "API Usage Statistics"):
     """打印统计表格"""
     if not stats:
         print("No API usage data found.")
         return
-
-    # 表头
-    print("=" * 100)
-    print(f"{'Model':<30} {'Requests':>10} {'Input Tokens':>15} {'Output Tokens':>15} {'Cache Read':>15}")
-    print("=" * 100)
 
     # 按请求次数排序
     sorted_models = sorted(stats.items(), key=lambda x: x[1]['count'], reverse=True)
@@ -119,18 +132,56 @@ def print_stats_table(stats: Dict):
     total_output = 0
     total_cache = 0
 
-    for model, data in sorted_models:
-        print(f"{model:<30} {data['count']:>10} {format_number(data['input_tokens']):>15} "
-              f"{format_number(data['output_tokens']):>15} {format_number(data['cache_read_tokens']):>15}")
-        total_count += data['count']
-        total_input += data['input_tokens']
-        total_output += data['output_tokens']
-        total_cache += data['cache_read_tokens']
+    if HAS_RICH:
+        console = Console()
+        table = Table(title=title, show_header=True, header_style="bold cyan")
+        table.add_column("Model", style="green", width=30)
+        table.add_column("Requests", justify="right", style="yellow")
+        table.add_column("Input", justify="right", style="blue")
+        table.add_column("Output", justify="right", style="magenta")
+        table.add_column("Cache Read", justify="right", style="cyan")
 
-    print("=" * 100)
-    print(f"{'TOTAL':<30} {total_count:>10} {format_number(total_input):>15} "
-          f"{format_number(total_output):>15} {format_number(total_cache):>15}")
-    print("=" * 100)
+        for model, data in sorted_models:
+            table.add_row(
+                model,
+                format_number(data['count']),
+                format_tokens(data['input_tokens']),
+                format_tokens(data['output_tokens']),
+                format_tokens(data['cache_read_tokens'])
+            )
+            total_count += data['count']
+            total_input += data['input_tokens']
+            total_output += data['output_tokens']
+            total_cache += data['cache_read_tokens']
+
+        # 添加总计行
+        table.add_row(
+            "[bold]TOTAL[/bold]",
+            f"[bold]{format_number(total_count)}[/bold]",
+            f"[bold]{format_tokens(total_input)}[/bold]",
+            f"[bold]{format_tokens(total_output)}[/bold]",
+            f"[bold]{format_tokens(total_cache)}[/bold]"
+        )
+
+        console.print(table)
+    else:
+        # 简单表格格式
+        print("=" * 90)
+        print(f"{'Model':<30} {'Requests':>10} {'Input':>12} {'Output':>12} {'Cache':>12}")
+        print("=" * 90)
+
+        for model, data in sorted_models:
+            print(f"{model:<30} {data['count']:>10} {format_tokens(data['input_tokens']):>12} "
+                  f"{format_tokens(data['output_tokens']):>12} {format_tokens(data['cache_read_tokens']):>12}")
+            total_count += data['count']
+            total_input += data['input_tokens']
+            total_output += data['output_tokens']
+            total_cache += data['cache_read_tokens']
+
+        print("=" * 90)
+        print(f"{'TOTAL':<30} {total_count:>10} {format_tokens(total_input):>12} "
+              f"{format_tokens(total_output):>12} {format_tokens(total_cache):>12}")
+        print("=" * 90)
 
 
 def main():
@@ -152,10 +203,10 @@ def main():
         print(json.dumps(stats, indent=2))
     else:
         if args.days:
-            print(f"\nAPI Usage Statistics (Last {args.days} days)\n")
+            title = f"API Usage Statistics (Last {args.days} days)"
         else:
-            print(f"\nAPI Usage Statistics (All Time)\n")
-        print_stats_table(stats)
+            title = "API Usage Statistics (All Time)"
+        print_stats_table(stats, title=title)
 
 
 if __name__ == '__main__':
