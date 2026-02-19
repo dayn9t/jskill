@@ -1,0 +1,73 @@
+#!/bin/bash
+# Claude Code Skill: api-stats
+# 查看 API 使用统计
+
+# 获取脚本真实路径（处理符号链接）
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+# 检测 proxy 子命令
+if [[ "$1" == "proxy" ]]; then
+    shift
+    python3 "$SCRIPT_DIR/proxy_stats.py" "$@"
+    exit $?
+fi
+
+# 默认查看今天的统计
+DAYS=1
+
+# 解析参数
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --days)
+            DAYS="$2"
+            shift 2
+            ;;
+        --all)
+            DAYS=""
+            shift
+            ;;
+        --json)
+            JSON_FLAG="--json"
+            shift
+            ;;
+        --model)
+            MODEL_FLAG="--model $2"
+            shift 2
+            ;;
+        --help|-h)
+            echo "Usage: /api-stats [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --days N       Show last N days statistics"
+            echo "  --all          Show all time statistics"
+            echo "  --json         Output as JSON"
+            echo "  --model NAME   Filter by model name"
+            echo ""
+            echo "Proxy commands:"
+            echo "  proxy --start [--port PORT]   Start TCP proxy for URL tracking"
+            echo "  proxy --stats [--hours N]      Show proxy statistics"
+            echo ""
+            echo "Examples:"
+            echo "  /api-stats                # Today's stats"
+            echo "  /api-stats --days 7       # Last 7 days"
+            echo "  /api-stats --all          # All time"
+            echo "  /api-stats proxy --start  # Start proxy on port 8080"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage"
+            exit 1
+            ;;
+    esac
+done
+
+# 构建命令
+CMD="python3 \"$SCRIPT_DIR/stats.py\""
+[[ -n "$DAYS" ]] && CMD="$CMD --days $DAYS"
+[[ -n "$JSON_FLAG" ]] && CMD="$CMD $JSON_FLAG"
+[[ -n "$MODEL_FLAG" ]] && CMD="$CMD $MODEL_FLAG"
+
+# 执行
+eval $CMD
